@@ -682,7 +682,7 @@ PipelineStage::checkSignalsAndUpdate(ThreadID tid)
         }
     }
 
-    if (checkStall(tid)  || (!prevStageValid && (cpu->CurHot > cpu->KHot))) {
+    if (checkStall(tid) || (!prevStageValid && (cpu->CurHot >= cpu->KHot))) {
         if(!checkStall(tid)){
             DPRINTF(InOrderStage, "block due to khot\n");
         }
@@ -734,9 +734,17 @@ PipelineStage::tick()
 
     bool status_change = false;
     
+    int insts_available = skidBuffer[0].size();
+    if(prevStageValid)    
+        insts_available += prevStage->insts.size();
+    else
+        insts_available = 0;
+    cpu->CurHot = cpu->CurHot + insts_available;
+    
     sortInsts();
 
     instsProcessed = 0;
+    
 
     processStage(status_change);
 
@@ -748,9 +756,11 @@ PipelineStage::tick()
         DPRINTF(Activity, "Activity this cycle.\n");
         cpu->activityThisCycle();
     }
-    
-    if(instsProcessed > 0)
-        (cpu->CurHot)++;
+    /*
+    if(instsProcessed > 0){
+        cpu->CurHot = cpu->CurHot + 1;
+    }
+    */
     DPRINTF(InOrderStage, "CurHot is %d.\n", cpu->CurHot);
     DPRINTF(InOrderStage, "\n\n");
 }

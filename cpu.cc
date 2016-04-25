@@ -223,7 +223,7 @@ InOrderCPU::CPUEvent::unscheduleEvent()
 
 InOrderCPU::InOrderCPU(Params *params)
     : BaseCPU(params),
-      KHot(1),
+      KHot(2),
       CurHot(0),
       cpu_id(params->cpu_id),
       coreType("default"),
