@@ -148,7 +148,7 @@ void
 FirstStage::processInsts(ThreadID tid)
 {
     bool all_reqs_completed = true;
-
+    
     for (int insts_fetched = instsProcessed;
          insts_fetched < stageWidth;
          insts_fetched++) {
@@ -214,6 +214,11 @@ FirstStage::processInsts(ThreadID tid)
     // Record that stage has written to the time buffer for activity
     // tracking.
     if (instsProcessed) {
+        if(!incremented){
+            cpu->StageHot = cpu->StageHot + 1;
+            DPRINTF(InOrderStage, "Increment from first stage\n");
+            incremented = true;
+        }
         wroteToTimeBuffer = true;
     }
 }

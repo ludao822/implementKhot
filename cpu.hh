@@ -109,6 +109,7 @@ class InOrderCPU : public BaseCPU
     /* Destructor */
     ~InOrderCPU();
     
+    int StageHot;
     int KHot;
     int CurHot;
     /** Return a reference to the data port. */

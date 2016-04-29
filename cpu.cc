@@ -223,6 +223,7 @@ InOrderCPU::CPUEvent::unscheduleEvent()
 
 InOrderCPU::InOrderCPU(Params *params)
     : BaseCPU(params),
+      StageHot(0),
       KHot(2),
       CurHot(0),
       cpu_id(params->cpu_id),
@@ -742,6 +743,7 @@ InOrderCPU::tick()
         pipes_idle = pipes_idle && pipelineStage[stNum]->idle;
     }
     CurHot = 0;
+    StageHot = 0; 
     if (pipes_idle)
         idleCycles++;
     else

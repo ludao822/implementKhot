@@ -90,7 +90,9 @@ class PipelineStage
 
   public:
     PipelineStage(Params *params, unsigned stage_num);
-
+    
+    bool needWait;
+    bool incremented;
     virtual ~PipelineStage();
 
     /** PipelineStage initialization. */

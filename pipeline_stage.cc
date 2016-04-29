@@ -46,6 +46,7 @@ using namespace ThePipeline;
 PipelineStage::PipelineStage(Params *params, unsigned stage_num)
     : stageNum(stage_num), stageWidth(params->stageWidth),
       numThreads(ThePipeline::MaxThreads), _status(Inactive),
+      needWait(false), incremented(false),
       stageBufferMax(params->stageWidth),
       prevStageValid(false), nextStageValid(false), idle(false)
 {
@@ -682,7 +683,8 @@ PipelineStage::checkSignalsAndUpdate(ThreadID tid)
         }
     }
 
-    if (checkStall(tid) || (!prevStageValid && (cpu->CurHot >= cpu->KHot))) {
+    if (checkStall(tid) || //regular stall
+        (!prevStageValid && ((cpu->StageHot >= cpu->KHot) || cpu->CurHot >= (cpu->KHot*2)))){ //stall fetching 
         if(!checkStall(tid)){
             DPRINTF(InOrderStage, "block due to khot\n");
         }
@@ -733,12 +735,17 @@ PipelineStage::tick()
     wroteToTimeBuffer = false;
 
     bool status_change = false;
-    
+    bool flagg = false; 
     int insts_available = skidBuffer[0].size();
     if(prevStageValid)    
         insts_available += prevStage->insts.size();
     else
         insts_available = 0;
+    
+    if(insts_available > 0){
+        flagg = true;
+        DPRINTF(InOrderStage, "%d available instructions!!!!\n", insts_available);
+    }
     cpu->CurHot = cpu->CurHot + insts_available;
     
     sortInsts();
@@ -761,7 +768,11 @@ PipelineStage::tick()
         cpu->CurHot = cpu->CurHot + 1;
     }
     */
+    incremented = false;
+
     DPRINTF(InOrderStage, "CurHot is %d.\n", cpu->CurHot);
+    if(stageNum == 0)
+        DPRINTF(InOrderStage, "StageHot is %d.\n", cpu->StageHot);
     DPRINTF(InOrderStage, "\n\n");
 }
 
@@ -830,7 +841,7 @@ PipelineStage::processStage(bool &status_change)
         ++idleCycles;        
         idle = true;        
     }
-    
+    needWait = false; 
     DPRINTF(InOrderStage, "%i left in stage %i incoming buffer.\n", skidSize(),
             stageNum);
 
@@ -850,13 +861,13 @@ PipelineStage::processThread(bool &status_change, ThreadID tid)
 
     // Stage should try to process as many instructions as its bandwidth
     // will allow, as long as it is not currently blocked.
-    if (stageStatus[tid] == Running ||
-        stageStatus[tid] == Idle) {
+    if ((stageStatus[tid] == Running ||
+        stageStatus[tid] == Idle) && !needWait) {
         DPRINTF(InOrderStage, "[tid:%u]: Not blocked, so attempting to run "
                 "stage.\n",tid);
 
         processInsts(tid);
-    } else if (stageStatus[tid] == Unblocking) {
+    } else if (stageStatus[tid] == Unblocking && !needWait) {
         // Make sure that the skid buffer has something in it if the
         // status is unblocking.
         assert(!skidsEmpty());
@@ -885,7 +896,6 @@ PipelineStage::processInsts(ThreadID tid)
                 " early.\n",tid);
         return;
     }
-
     DynInstPtr inst;
     bool last_req_completed = true;
 
@@ -948,6 +958,12 @@ PipelineStage::processInsts(ThreadID tid)
     // Record that stage has written to the time buffer for activity
     // tracking.
     if (instsProcessed) {
+        //If we are here, we are probably doing something
+        if(!incremented){
+            cpu->StageHot = cpu->StageHot + 1;
+            DPRINTF(InOrderStage, "Increment from middle stage\n"); 
+            incremented = true;
+        }
         wroteToTimeBuffer = true;
     }
 }
