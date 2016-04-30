@@ -121,7 +121,7 @@ FirstStage::processStage(bool &status_change)
         status_change =  checkSignalsAndUpdate(tid) || status_change;
     }
 
-    int width = stageWidth > (cpu->KHot - cpu->CurHot) ? (cpu->KHot - cpu->CurHot) : stageWidth; 
+    int width = stageWidth > (2*cpu->KHot - cpu->CurHot) ? (2*cpu->KHot - cpu->CurHot) : stageWidth; 
     while (instsProcessed < width)  {
         ThreadID tid = getFetchingThread(fetchPolicy);
 
@@ -151,7 +151,7 @@ void
 FirstStage::processInsts(ThreadID tid)
 {
     bool all_reqs_completed = true;
-    int width = stageWidth > (cpu->KHot - cpu->CurHot) ? (cpu->KHot - cpu->CurHot) : stageWidth; 
+    int width = stageWidth > (2*cpu->KHot - cpu->CurHot) ? (2*cpu->KHot - cpu->CurHot) : stageWidth; 
     for (int insts_fetched = instsProcessed;
          insts_fetched < width;
          insts_fetched++) {
