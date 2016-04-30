@@ -1568,7 +1568,9 @@ InOrderCPU::removeInstsUntil(const InstSeqNum &seq_num, ThreadID tid)
     //assert(!instList[tid].empty());
 
     removeInstsThisCycle = true;
-
+    if(instList[tid].empty()){
+        return;
+    }
     ListIt inst_iter = instList[tid].end();
 
     inst_iter--;
