@@ -93,7 +93,9 @@ FirstStage::squash(InstSeqNum squash_seq_num, ThreadID tid)
     // Now that squash has propagated to the first stage,
     // Alert CPU to remove instructions from the CPU instruction list.
     // @todo: Move this to the CPU object.
+    DPRINTF(InOrderStage, "get here 1");
     cpu->removeInstsUntil(squash_seq_num, tid);
+    DPRINTF(InOrderStage, "get here 2");
 }
 
 void 
@@ -119,7 +121,8 @@ FirstStage::processStage(bool &status_change)
         status_change =  checkSignalsAndUpdate(tid) || status_change;
     }
 
-    while (instsProcessed < stageWidth)  {
+    int width = stageWidth > (2 *cpu->KHot - cpu->CurHot) ? (2 * cpu->KHot - cpu->CurHot) : stageWidth; 
+    while (instsProcessed < width)  {
         ThreadID tid = getFetchingThread(fetchPolicy);
 
         if (tid >= 0) {
@@ -148,9 +151,9 @@ void
 FirstStage::processInsts(ThreadID tid)
 {
     bool all_reqs_completed = true;
-    
+    int width = stageWidth > (2 * cpu->KHot - cpu->CurHot) ? (2 * cpu->KHot - cpu->CurHot) : stageWidth; 
     for (int insts_fetched = instsProcessed;
-         insts_fetched < stageWidth;
+         insts_fetched < width;
          insts_fetched++) {
 
         DynInstPtr inst;

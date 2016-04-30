@@ -224,7 +224,7 @@ InOrderCPU::CPUEvent::unscheduleEvent()
 InOrderCPU::InOrderCPU(Params *params)
     : BaseCPU(params),
       StageHot(0),
-      KHot(2),
+      KHot(1),
       CurHot(0),
       cpu_id(params->cpu_id),
       coreType("default"),
@@ -1568,7 +1568,9 @@ InOrderCPU::removeInstsUntil(const InstSeqNum &seq_num, ThreadID tid)
     //assert(!instList[tid].empty());
 
     removeInstsThisCycle = true;
-
+    if(instList[tid].empty()){
+        return;
+    }
     ListIt inst_iter = instList[tid].end();
 
     inst_iter--;

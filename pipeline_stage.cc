@@ -684,7 +684,7 @@ PipelineStage::checkSignalsAndUpdate(ThreadID tid)
     }
 
     if (checkStall(tid) || //regular stall
-        (!prevStageValid && ((cpu->StageHot >= cpu->KHot) || cpu->CurHot >= (cpu->KHot*2)))){ //stall fetching 
+        (!prevStageValid && ((cpu->StageHot >= cpu->KHot) || cpu->CurHot >= 2*(cpu->KHot)))){ //stall fetching 
         if(!checkStall(tid)){
             DPRINTF(InOrderStage, "block due to khot\n");
         }
