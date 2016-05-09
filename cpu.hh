@@ -112,6 +112,26 @@ class InOrderCPU : public BaseCPU
     int StageHot;
     int KHot;
     int CurHot;
+    int numAll = 0;
+    //IF
+    int numIFU[2] = {0,0};
+    int numICache[2] = {0,0};
+    int numBP[2] = {0,0};
+    int numBTB[2] = {0,0};
+    //ID
+    int numREG[2] = {0,0};
+    //EXE
+    int numEXE[2] = {0,0};
+    //MEM
+    int numLSU[2] = {0,0};
+    int numDCache[2] = {0,0};
+    //Misc
+    int numMMU[2] = {0,0};
+    int numITLB[2] = {0,0};
+    int numDTLB[2] = {0,0};
+     
+
+    //
     /** Return a reference to the data port. */
     virtual CpuPort &getDataPort() { return dataPort; }
 

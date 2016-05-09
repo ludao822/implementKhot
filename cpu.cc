@@ -64,6 +64,7 @@
 #include "debug/Activity.hh"
 #include "debug/InOrderCPU.hh"
 #include "debug/InOrderCachePort.hh"
+#include "debug/InOrderUseDef.hh"
 #include "debug/Interrupt.hh"
 #include "debug/Quiesce.hh"
 #include "debug/RefCount.hh"
@@ -742,6 +743,18 @@ InOrderCPU::tick()
 
         pipes_idle = pipes_idle && pipelineStage[stNum]->idle;
     }
+    numAll++;
+    numIFU[0] = numIFU[1];
+    numICache[0] = numICache[1];
+    numBP[0] = numBP[1];
+    numBTB[0] = numBTB[1];
+    numREG[0] = numREG[1];
+    numEXE[0] = numEXE[1];
+    numLSU[0] = numLSU[1];
+    numDCache[0] = numDCache[1];
+    numMMU[0] = numMMU[1];
+    numITLB[0] = numITLB[1];
+    numDTLB[0] = numDTLB[1];
     CurHot = 0;
     StageHot = 0; 
     if (pipes_idle)
@@ -777,6 +790,18 @@ InOrderCPU::tick()
                     nextCycle(curTick() + 1));
         }
     }
+    DPRINTF(InOrderUseDef, "All counter: %d\n", numAll);
+    DPRINTF(InOrderUseDef, "IFU counter: %dm\n", numIFU[0]);
+    DPRINTF(InOrderUseDef, "ICache counter: %d\n", numICache[0]);
+    DPRINTF(InOrderUseDef, "BTB counter: %d\n", numBTB[0]);
+    DPRINTF(InOrderUseDef, "BP counter: %d\n", numBP[0]);
+    DPRINTF(InOrderUseDef, "EXE counter: %d\n", numEXE[0]);
+    DPRINTF(InOrderUseDef, "LSU counter: %d\n", numLSU[0]);
+    DPRINTF(InOrderUseDef, "DCache counter: %d\n", numDCache[0]);
+    DPRINTF(InOrderUseDef, "MMU counter: %d\n", numMMU[0]);
+    DPRINTF(InOrderUseDef, "ITLB counter: %d\n", numITLB[0]);
+    DPRINTF(InOrderUseDef, "DTLB counter: %d\n", numDTLB[0]);
+
 
     tickThreadStats();
     updateThreadPriority();

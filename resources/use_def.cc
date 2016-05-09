@@ -167,22 +167,22 @@ UseDefUnit::execute(int slot_idx)
 
     if ((inst->isIprAccess() || inst->isSerializeBefore()) &&
         cpu->instList[tid].front() != inst) {
-        DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i] Serialize before instruction encountered."
-                " Blocking until pipeline is clear.\n", tid, seq_num);
+        /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i] Serialize before instruction encountered."
+                " Blocking until pipeline is clear.\n", tid, seq_num);*/
         ud_req->done(false);
         return;
     } else if (inst->isStoreConditional() || inst->isSerializeAfter()) {
-        DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i] Serialize after instruction encountered."
-                " Blocking until pipeline is clear.\n", tid, seq_num);
+        /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i] Serialize after instruction encountered."
+                " Blocking until pipeline is clear.\n", tid, seq_num);*/
         serializeOnNextInst[tid] = true;
         serializeAfterSeqNum[tid] = seq_num;
     }
 
     if (inst->fault != NoFault) {
-        DPRINTF(InOrderUseDef,
+        /*DPRINTF(InOrderUseDef,
                 "[tid:%i]: [sn:%i]: Detected %s fault @ %x. Forwarding to "
                 "next stage.\n", inst->readTid(), inst->seqNum, inst->fault->name(),
-                inst->pcState());
+                inst->pcState());*/
         ud_req->done();
         return;
     }
@@ -191,9 +191,9 @@ UseDefUnit::execute(int slot_idx)
     // in the pipeline then stall instructions here
     // ---
     if (*nonSpecInstActive[tid] == true && seq_num > *nonSpecSeqNum[tid]) {
-        DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i] cannot execute because"
+        /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i] cannot execute because"
                 "there is non-speculative instruction [sn:%i] has not "
-                "graduated.\n", tid, seq_num, *nonSpecSeqNum[tid]);
+                "graduated.\n", tid, seq_num, *nonSpecSeqNum[tid]);*/
         ud_req->done(false);
         return;
     } else if (inst->isNonSpeculative()) {
@@ -211,14 +211,14 @@ UseDefUnit::execute(int slot_idx)
             inst->flattenSrcReg(ud_idx, flat_idx);
             
             if (flat_idx == TheISA::ZeroReg && reg_type == InOrderCPU::IntType) {
-                DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Ignoring Reading of ISA-ZeroReg "
-                        "(Int. Reg %i).\n", tid, inst->seqNum, flat_idx);
+                /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Ignoring Reading of ISA-ZeroReg "
+                        "(Int. Reg %i).\n", tid, inst->seqNum, flat_idx);*/
                 ud_req->done();
                 return;
             } else {
-                DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Attempting to read source "
+                /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Attempting to read source "
                         "register idx %i (reg #%i, flat#%i).\n",
-                        tid, seq_num, ud_idx, reg_idx, flat_idx);
+                        tid, seq_num, ud_idx, reg_idx, flat_idx);*/
             }
 
             if (regDepMap[tid]->canRead(reg_type, flat_idx, inst)) {
@@ -228,11 +228,11 @@ UseDefUnit::execute(int slot_idx)
                     {
                         uniqueIntRegMap[flat_idx] = true;
 
-                        DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Reading Int Reg %i"
+                        /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Reading Int Reg %i"
                                 " (%i) from Register File:0x%x.\n",
                                 tid, seq_num,
                                 reg_idx, flat_idx,
-                                cpu->readIntReg(flat_idx,inst->readTid()));
+                                cpu->readIntReg(flat_idx,inst->readTid()));*/
                         inst->setIntSrc(ud_idx,
                                         cpu->readIntReg(flat_idx,
                                                         inst->readTid()));
@@ -243,14 +243,14 @@ UseDefUnit::execute(int slot_idx)
                   case InOrderCPU::FloatType:
                     {
                         uniqueFloatRegMap[flat_idx] = true;
-                        DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Reading Float Reg %i"
+                        /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Reading Float Reg %i"
                                 " (%i) from Register File:%x (%08f).\n",
                                 tid, seq_num,
                                 reg_idx - FP_Base_DepTag, flat_idx,
                                 cpu->readFloatRegBits(flat_idx,
                                                       inst->readTid()),
                                 cpu->readFloatReg(flat_idx,
-                                                  inst->readTid()));
+                                                  inst->readTid()));*/
 
                         inst->setFloatSrc(ud_idx,
                                           cpu->readFloatReg(flat_idx,
@@ -265,12 +265,12 @@ UseDefUnit::execute(int slot_idx)
                   case InOrderCPU::MiscType:
                     {
                         uniqueMiscRegMap[flat_idx] = true;
-                        DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Reading Misc Reg %i "
+                        /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Reading Misc Reg %i "
                                 " (%i) from Register File:0x%x.\n",
                                 tid, seq_num,
                                 reg_idx - Ctrl_Base_DepTag, flat_idx,
                                 cpu->readMiscReg(flat_idx,
-                                inst->readTid()));
+                                inst->readTid()));*/
                         inst->setIntSrc(ud_idx,
                                         cpu->readMiscReg(flat_idx,
                                                          inst->readTid()));
@@ -296,13 +296,13 @@ UseDefUnit::execute(int slot_idx)
                     {
                       case InOrderCPU::IntType:
                         {
-                            DPRINTF(InOrderUseDef, "[tid:%i]: Forwarding dest."
+                            /*DPRINTF(InOrderUseDef, "[tid:%i]: Forwarding dest."
                                     " reg %i (%i), value 0x%x from "
                                     "[sn:%i] to [sn:%i] source #%x.\n",
                                     tid, reg_idx, flat_idx,
                                     forward_inst->readIntResult(dest_reg_idx),
                                     forward_inst->seqNum, 
-                                    inst->seqNum, ud_idx);
+                                    inst->seqNum, ud_idx);*/
                             inst->setIntSrc(ud_idx, 
                                             forward_inst->
                                             readIntResult(dest_reg_idx));
@@ -311,12 +311,12 @@ UseDefUnit::execute(int slot_idx)
 
                       case InOrderCPU::FloatType:
                         {
-                            DPRINTF(InOrderUseDef, "[tid:%i]: Forwarding dest."
+                            /*DPRINTF(InOrderUseDef, "[tid:%i]: Forwarding dest."
                                     " reg %i (%i) value 0x%x from "
                                     "[sn:%i] to [sn:%i] source #%i.\n",
                                     tid, reg_idx - FP_Base_DepTag, flat_idx,
                                     forward_inst->readFloatResult(dest_reg_idx),
-                                    forward_inst->seqNum, inst->seqNum, ud_idx);
+                                    forward_inst->seqNum, inst->seqNum, ud_idx);*/
                             inst->setFloatSrc(ud_idx,
                                               forward_inst->
                                               readFloatResult(dest_reg_idx));
@@ -325,13 +325,13 @@ UseDefUnit::execute(int slot_idx)
 
                       case InOrderCPU::MiscType:
                         {
-                            DPRINTF(InOrderUseDef, "[tid:%i]: Forwarding dest."
+                            /*DPRINTF(InOrderUseDef, "[tid:%i]: Forwarding dest."
                                     " reg %i (%i) value 0x%x from "
                                     "[sn:%i] to [sn:%i] source #%i.\n",
                                     tid, reg_idx - Ctrl_Base_DepTag, flat_idx,
                                     forward_inst->readIntResult(dest_reg_idx),
                                     forward_inst->seqNum, 
-                                    inst->seqNum, ud_idx);
+                                    inst->seqNum, ud_idx);*/
                             inst->setIntSrc(ud_idx, 
                                             forward_inst->
                                             readIntResult(dest_reg_idx));
@@ -345,9 +345,9 @@ UseDefUnit::execute(int slot_idx)
                     regForwards++;
                     ud_req->done();
                 } else {
-                    DPRINTF(InOrderUseDef, "[tid:%i]: Source register idx: %i "
+                    /*DPRINTF(InOrderUseDef, "[tid:%i]: Source register idx: %i "
                             "is not ready to read.\n",
-                            tid, reg_idx);
+                            tid, reg_idx);*/
                     DPRINTF(InOrderStall, "STALL: [tid:%i]: waiting to read "
                             "register (idx=%i)\n",
                             tid, reg_idx);
@@ -371,9 +371,9 @@ UseDefUnit::execute(int slot_idx)
             }
 
             if (regDepMap[tid]->canWrite(reg_type, flat_idx, inst)) {
-                DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Flattening register idx %i "
+                /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Flattening register idx %i "
                         "(%i) and Attempting to write to Register File.\n",
-                        tid, seq_num, reg_idx, flat_idx);
+                        tid, seq_num, reg_idx, flat_idx);*/
 
                 switch (reg_type)
                 {
@@ -381,10 +381,10 @@ UseDefUnit::execute(int slot_idx)
                     {
                         uniqueIntRegMap[flat_idx] = true;
 
-                        DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing Int. Result "
+                        /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing Int. Result "
                                 "0x%x to register idx %i (%i).\n",
                                 tid, seq_num, inst->readIntResult(ud_idx),
-                                reg_idx, flat_idx);
+                                reg_idx, flat_idx);*/
 
                         // Remove Dependencies
                         regDepMap[tid]->removeFront(reg_type, flat_idx, inst);
@@ -405,13 +405,13 @@ UseDefUnit::execute(int slot_idx)
 
                         if (inst->resultType(ud_idx) == 
                             InOrderDynInst::FloatBits) {
-                            DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing FP-Bits "
+                            /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing FP-Bits "
                                     "Result %08f (bits:0x%x) to register "
                                     "idx %i (%i).\n",
                                     tid, seq_num,
                                     inst->readFloatResult(ud_idx), 
                                     inst->readFloatBitsResult(ud_idx),
-                                    reg_idx - FP_Base_DepTag, flat_idx);
+                                    reg_idx - FP_Base_DepTag, flat_idx);*/
 
                             // Check for FloatRegBits Here
                             cpu->setFloatRegBits(flat_idx,
@@ -419,25 +419,25 @@ UseDefUnit::execute(int slot_idx)
                                                  inst->readTid());
                         } else if (inst->resultType(ud_idx) == 
                                    InOrderDynInst::Float) {
-                            DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing Float "
+                            /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing Float "
                                     "Result %08f (bits:0x%x) to register "
                                     "idx %i (%i).\n",
                                     tid, seq_num, inst->readFloatResult(ud_idx),
                                     inst->readIntResult(ud_idx), 
-                                    reg_idx - FP_Base_DepTag, flat_idx);
+                                    reg_idx - FP_Base_DepTag, flat_idx);*/
 
                             cpu->setFloatReg(flat_idx,
                                              inst->readFloatResult(ud_idx),
                                              inst->readTid());
                         } else if (inst->resultType(ud_idx) == 
                                    InOrderDynInst::Double) {
-                            DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing Double "
+                            /*DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Writing Double "
                                     "Result %08f (bits:0x%x) to register "
                                     "idx %i (%i).\n",
                                     tid, seq_num,
                                     inst->readFloatResult(ud_idx), 
                                     inst->readIntResult(ud_idx), 
-                                    reg_idx - FP_Base_DepTag, flat_idx);
+                                    reg_idx - FP_Base_DepTag, flat_idx);*/
 
                             cpu->setFloatReg(flat_idx,
                                              inst->readFloatResult(ud_idx),
@@ -455,9 +455,9 @@ UseDefUnit::execute(int slot_idx)
                     {
                         uniqueMiscRegMap[flat_idx] = true;
 
-                        DPRINTF(InOrderUseDef, "[tid:%i]: Writing Misc. 0x%x "
-                                "to register idx %i.\n",
-                                tid, inst->readIntResult(ud_idx), reg_idx - Ctrl_Base_DepTag);
+                        //DPRINTF(InOrderUseDef, "[tid:%i]: Writing Misc. 0x%x "
+//                                "to register idx %i.\n",
+ //                               tid, inst->readIntResult(ud_idx), reg_idx - Ctrl_Base_DepTag);
 
                         // Remove Dependencies
                         regDepMap[tid]->removeFront(reg_type, flat_idx, inst);
@@ -474,9 +474,9 @@ UseDefUnit::execute(int slot_idx)
 
                 ud_req->done();
             } else {
-                DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Dest. register idx: %i is "
-                        "not ready to write.\n",
-                        tid, seq_num, reg_idx);
+                //DPRINTF(InOrderUseDef, "[tid:%i]: [sn:%i]: Dest. register idx: %i is "
+//                        "not ready to write.\n",
+//                        tid, seq_num, reg_idx);
                 DPRINTF(InOrderStall, "STALL: [tid:%i]: waiting to write "
                         "register (idx=%i)\n",
                         tid, reg_idx);

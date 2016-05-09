@@ -684,7 +684,7 @@ PipelineStage::checkSignalsAndUpdate(ThreadID tid)
     }
 
     if (checkStall(tid) || //regular stall
-        (!prevStageValid && ((cpu->StageHot >= cpu->KHot) || cpu->CurHot >= 2*(cpu->KHot)))){ //stall fetching 
+        (!prevStageValid &&/* ((cpu->StageHot >= cpu->KHot) ||*/ cpu->CurHot >= (cpu->KHot))) //stall fetching 
         if(!checkStall(tid)){
             DPRINTF(InOrderStage, "block due to khot\n");
         }
@@ -732,6 +732,7 @@ PipelineStage::tick()
 {
     idle = false;
     
+    
     wroteToTimeBuffer = false;
 
     bool status_change = false;
@@ -768,6 +769,40 @@ PipelineStage::tick()
         cpu->CurHot = cpu->CurHot + 1;
     }
     */
+    if(insts_available > 0 || (stageNum == 0 && incremented)){
+        switch(stageNum){
+            //IF
+            case(0):
+                (cpu->numIFU)[1] = (cpu->numIFU)[0] + 1;
+                (cpu->numICache)[1] = (cpu->numICache)[0] + 1;
+                (cpu->numMMU)[1] = (cpu->numMMU)[0] + 1;
+                (cpu->numITLB)[1] = (cpu->numITLB)[0] + 1;
+                break;
+            case(1):
+                (cpu->numIFU)[1] = (cpu->numIFU)[0] + 1;
+                (cpu->numICache)[1] = (cpu->numICache)[0] + 1;
+                (cpu->numBP)[1] = (cpu->numBP)[0] + 1;
+                (cpu->numBTB)[1] = (cpu->numBTB)[0] + 1;
+                (cpu->numREG)[1] = (cpu->numREG)[0] + 1;
+                break;
+            case(2):
+                (cpu->numEXE)[1] = (cpu->numEXE)[0] + 1;
+                break;
+            case(3):
+                (cpu->numLSU)[1] = (cpu->numLSU)[0] + 1;
+                (cpu->numDCache)[1] = (cpu->numDCache)[0] + 1;
+                (cpu->numMMU)[1] = (cpu->numMMU)[0] + 1;
+                (cpu->numDTLB)[1] = (cpu->numDTLB)[0] + 1;
+            case(4):
+                (cpu->numREG)[1] = (cpu->numREG)[0] + 1;
+                (cpu->numEXE)[1] = (cpu->numEXE)[0] + 1;
+                (cpu->numBP)[1] = (cpu->numBP)[0] + 1;
+                (cpu->numBTB)[1] = (cpu->numBTB)[0] + 1;
+        
+            default:
+                break;
+        }
+    }
     incremented = false;
 
     DPRINTF(InOrderStage, "CurHot is %d.\n", cpu->CurHot);
