@@ -952,6 +952,21 @@ class InOrderCPU : public BaseCPU
 
     /** Stat for the total IPC. */
     Stats::Formula totalIpc;
+
+    /** KHot Stats */
+    Stats::Scalar statsALL;
+    Stats::Scalar statsIFU;
+    Stats::Scalar statsICache;
+    Stats::Scalar statsBTB;
+    Stats::Scalar statsBP;
+    Stats::Scalar statsEXE;
+    Stats::Scalar statsREG;
+    Stats::Scalar statsLSU;
+    Stats::Scalar statsDCache;
+    Stats::Scalar statsMMU;
+    Stats::Scalar statsITLB;
+    Stats::Scalar statsDTLB;
+
 };
 
 #endif // __CPU_O3_CPU_HH__

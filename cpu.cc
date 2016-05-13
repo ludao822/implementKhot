@@ -225,7 +225,7 @@ InOrderCPU::CPUEvent::unscheduleEvent()
 InOrderCPU::InOrderCPU(Params *params)
     : BaseCPU(params),
       StageHot(0),
-      KHot(1),
+      KHot(4),
       CurHot(0),
       cpu_id(params->cpu_id),
       coreType("default"),
@@ -722,7 +722,44 @@ InOrderCPU::regStats()
         .desc("IPC: Total IPC of All Threads")
         .precision(6);
         totalIpc =  totalCommittedInsts / numCycles;
+    
+    statsALL
+     .name(name() + ".numALL")
+     .desc("All total used");
 
+    statsIFU
+       .name(name() + ".numIFU")
+       .desc("All total used");
+    statsICache
+       .name(name() + ".numICache")
+       .desc("All total used");
+    statsBTB
+       .name(name() + ".numBTB")
+       .desc("All total used");
+    statsBP
+       .name(name() + ".numBP")
+       .desc("All total used");
+    statsEXE
+       .name(name() + ".numEXE")
+       .desc("All total used");
+    statsREG
+       .name(name() + ".numREG")
+       .desc("All total used");
+    statsLSU
+       .name(name() + ".numLSU")
+       .desc("All total used");
+    statsDCache
+       .name(name() + ".numDCache")
+       .desc("All total used");
+    statsMMU
+       .name(name() + ".numMMU")
+       .desc("All total used");
+    statsITLB
+        .name(name() + ".numITLB")
+        .desc("All total used");
+    statsDTLB
+        .name(name() + ".numDTLB")
+        .desc("All total used");
     BaseCPU::regStats();
 }
 
@@ -743,6 +780,30 @@ InOrderCPU::tick()
 
         pipes_idle = pipes_idle && pipelineStage[stNum]->idle;
     }
+    statsALL++;
+    if(numIFU[1] > numIFU[0])
+        statsIFU++;
+    if(numBP[1] > numBP[0])
+        statsBP++;
+    if(numBTB[1] > numBTB[0])
+        statsBTB++;
+    if(numICache[1] > numICache[0])
+        statsICache++;
+    if(numREG[1] > numREG[0])
+        statsREG++;
+    if(numEXE[1] > numEXE[0])
+        statsEXE++;
+    if(numLSU[1] > numLSU[0])
+        statsLSU++;
+    if(numDCache[1] > numDCache[0])
+        statsDCache++;
+    if(numMMU[1] > numMMU[0])
+        statsMMU++;
+    if(numITLB[1] > numITLB[0])
+        statsITLB++;
+    if(numDTLB[1] > numDTLB[0])
+        statsDTLB++;
+    
     numAll++;
     numIFU[0] = numIFU[1];
     numICache[0] = numICache[1];
@@ -755,6 +816,8 @@ InOrderCPU::tick()
     numMMU[0] = numMMU[1];
     numITLB[0] = numITLB[1];
     numDTLB[0] = numDTLB[1];
+
+
     CurHot = 0;
     StageHot = 0; 
     if (pipes_idle)
@@ -790,17 +853,18 @@ InOrderCPU::tick()
                     nextCycle(curTick() + 1));
         }
     }
-    DPRINTF(InOrderUseDef, "All counter: %d\n", numAll);
-    DPRINTF(InOrderUseDef, "IFU counter: %dm\n", numIFU[0]);
-    DPRINTF(InOrderUseDef, "ICache counter: %d\n", numICache[0]);
-    DPRINTF(InOrderUseDef, "BTB counter: %d\n", numBTB[0]);
-    DPRINTF(InOrderUseDef, "BP counter: %d\n", numBP[0]);
-    DPRINTF(InOrderUseDef, "EXE counter: %d\n", numEXE[0]);
-    DPRINTF(InOrderUseDef, "LSU counter: %d\n", numLSU[0]);
-    DPRINTF(InOrderUseDef, "DCache counter: %d\n", numDCache[0]);
-    DPRINTF(InOrderUseDef, "MMU counter: %d\n", numMMU[0]);
-    DPRINTF(InOrderUseDef, "ITLB counter: %d\n", numITLB[0]);
-    DPRINTF(InOrderUseDef, "DTLB counter: %d\n", numDTLB[0]);
+//    DPRINTF(InOrderUseDef, "All counter: %d\n", numAll);
+//    DPRINTF(InOrderUseDef, "IFU counter: %d\n", numIFU[0]);
+//    DPRINTF(InOrderUseDef, "ICache counter: %d\n", numICache[0]);
+//    DPRINTF(InOrderUseDef, "BTB counter: %d\n", numBTB[0]);
+//    DPRINTF(InOrderUseDef, "BP counter: %d\n", numBP[0]);
+//    DPRINTF(InOrderUseDef, "REG counter: %d\n", numREG[0]);
+//    DPRINTF(InOrderUseDef, "EXE counter: %d\n", numEXE[0]);
+//    DPRINTF(InOrderUseDef, "LSU counter: %d\n", numLSU[0]);
+//    DPRINTF(InOrderUseDef, "DCache counter: %d\n", numDCache[0]);
+//    DPRINTF(InOrderUseDef, "MMU counter: %d\n", numMMU[0]);
+//    DPRINTF(InOrderUseDef, "ITLB counter: %d\n", numITLB[0]);
+//    DPRINTF(InOrderUseDef, "DTLB counter: %d\n", numDTLB[0]);
 
 
     tickThreadStats();
