@@ -114,23 +114,27 @@ class InOrderCPU : public BaseCPU
     int CurHot;
     int numAll = 0;
     //IF
-    int numIFU[2] = {0,0};
-    int numICache[2] = {0,0};
-    int numBP[2] = {0,0};
-    int numBTB[2] = {0,0};
+    double numIFU[2] = {0,0};
+    double numICache[2] = {0,0};
+    double numBP[2] = {0,0};
+    double numBTB[2] = {0,0};
     //ID
-    int numREG[2] = {0,0};
+    double numREG[2] = {0,0};
     //EXE
-    int numEXE[2] = {0,0};
+    double numEXE[2] = {0,0};
     //MEM
-    int numLSU[2] = {0,0};
-    int numDCache[2] = {0,0};
+    double numLSU[2] = {0,0};
+    double numDCache[2] = {0,0};
     //Misc
-    int numMMU[2] = {0,0};
-    int numITLB[2] = {0,0};
-    int numDTLB[2] = {0,0};
+    double numMMU[2] = {0,0};
+    double numITLB[2] = {0,0};
+    double numDTLB[2] = {0,0};
      
-
+    //implementing power gating
+    //0 - off, 1 - turning off, 2 - turning on, 3 - on
+    int powerLast[5] = {0,0,0,0,0};
+    int powerNow[5] = {0,0,0,0,0};
+    int powerTemp[5] = {0,0,0,0,0};
     //
     /** Return a reference to the data port. */
     virtual CpuPort &getDataPort() { return dataPort; }
@@ -469,7 +473,8 @@ class InOrderCPU : public BaseCPU
 
     /** Registers statistics. */
     void regStats();
-
+    
+    double doublemax(double a, double b);
     /** Ticks CPU, calling tick() on each stage, and checking the overall
      *  activity to see if the CPU should deschedule itself.
      */

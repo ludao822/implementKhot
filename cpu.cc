@@ -225,7 +225,7 @@ InOrderCPU::CPUEvent::unscheduleEvent()
 InOrderCPU::InOrderCPU(Params *params)
     : BaseCPU(params),
       StageHot(0),
-      KHot(100),
+      KHot(4),
       CurHot(0),
       cpu_id(params->cpu_id),
       coreType("default"),
@@ -763,7 +763,15 @@ InOrderCPU::regStats()
     BaseCPU::regStats();
 }
 
-
+double
+InOrderCPU::doublemax(double a, double b){
+    if(a>b){
+        return a;
+    }
+    else{
+        return b;
+    }
+}
 void
 InOrderCPU::tick()
 {
@@ -780,30 +788,150 @@ InOrderCPU::tick()
 
         pipes_idle = pipes_idle && pipelineStage[stNum]->idle;
     }
+    
+    if(numAll == 0){
+        powerNow[0] = 3;
+        powerNow[1] = 2;
+    }
+    else{
+        int i;
+        for(i = 4; i >= 0; i-- ){
+            if(powerLast[i] == 1){//was turning off last cycle
+                powerNow[i] = powerLast[i] - 1;  //off now
+            }
+            else if(powerLast[i] == 2){//was turning on last cycle
+                powerNow[i] = powerLast[i] + 1; //keep turning on
+            }
+            else if(powerLast[i] == 3){
+                int number;
+                //check 1
+                if(i - 1 < 0){
+                    number = i - 1 + 5;
+                }
+                else{
+                    number = i - 1;
+                }
+                if(powerTemp[number] == 3){
+                    powerNow[i] = 3;
+                    continue;
+                }
+                else{
+                    powerNow[i] = 1;
+                }
+                //check 2
+                if(i - 2 < 0){
+                    number = i - 2 + 5;
+                }
+                else{
+                    number = i - 2;
+                }
+                if(powerTemp[number] == 3){
+                    powerNow[i] = 3;
+                    continue;
+                }
+                else{
+                    powerNow[i] = 1;
+                }
+           }
+        }
+        for(i = 0; i < 4; i ++){
+            if(powerTemp[i] == 3){
+                powerNow[i] = 3;
+                if(powerNow[(i+1)%5] == 0){
+                    powerNow[(i+1)%5] = 2;
+                }
+                if(powerNow[(i+1)%5] == 1){
+                    powerNow[(i+1)%5] = 3;
+                }
+            }
+        }
+    }
+    int j;
+    for(j = 0; j < 5; j++){
+        double toAdd;
+        if(powerNow[j] == 0){
+            toAdd = 0.0;
+        }
+        else if(powerNow[j] < 3){
+            toAdd = 0.5;
+        }
+        else{
+            toAdd = 1.0;
+        }
+        switch(j){
+            case(0):
+                (numIFU)[1] = max(numIFU[1],(numIFU)[0] + toAdd);
+                if(powerTemp[j] == 3){
+                    (numMMU)[1] = max(numMMU[1],(numMMU)[0] + toAdd);
+                    (numITLB)[1] = max(numITLB[1],(numITLB)[0] + toAdd);
+                    (numICache)[1] = max(numICache[1],(numICache)[0] + toAdd);
+                }
+                break;
+            case(1):
+                (numIFU)[1] = max(numIFU[1],(numIFU)[0] + toAdd);
+                (numICache)[1] = max(numICache[1],(numICache)[0] + toAdd);
+                if(powerTemp[j] == 3){
+                    (numBP)[1] = max(numBP[1],(numBP)[0] + toAdd);
+                    (numBTB)[1] = max(numBTB[1],(numBTB)[0] + toAdd);
+                    (numREG)[1] = max(numREG[1],(numREG)[0] + toAdd);
+                }
+                break;
+            case(2):
+                (numEXE)[1] = max(numEXE[1],(numEXE)[0] + toAdd);
+                break;
+            case(3):
+                (numLSU)[1] = max(numLSU[1],(numLSU)[0] + toAdd);
+                (numMMU)[1] = max(numMMU[1],(numMMU)[0] + toAdd);
+                if(powerTemp[j] == 3){
+                    (numDCache)[1] = max(numDCache[1],(numDCache)[0] + toAdd);
+                    (numDTLB)[1] = max(numDTLB[1],(numDTLB)[0] + toAdd);
+                }
+                break;
+            case(4):
+                (numEXE)[1] = max(numEXE[1],(numEXE)[0] + toAdd);
+                if(powerTemp[j] == 3){
+                    (numREG)[1] = max(numREG[1],(numREG)[0] + toAdd);
+                    (numBP)[1] = max(numBP[1],(numBP)[0] + toAdd);
+                    (numBTB)[1] = max(numBTB[1],(numBTB)[0] + toAdd);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    
+    DPRINTF(InOrderUseDef, "PowerTemp: %d,%d,%d,%d,%d\n",powerTemp[0],powerTemp[1], powerTemp[2], powerTemp[3], powerTemp[4] );
+    DPRINTF(InOrderUseDef, "PowerNow: %d,%d,%d,%d,%d\n",powerNow[0],powerNow[1], powerNow[2], powerNow[3], powerNow[4] );
+    for(j = 0; j < 5;j ++){
+        powerLast[j] = powerNow[j];
+        powerNow[j] = 0;
+        powerTemp[j] = 0;
+    }
+
     statsALL++;
     if(numIFU[1] > numIFU[0])
-        statsIFU++;
+        statsIFU+=(numIFU[1] - numIFU[0]);
     if(numBP[1] > numBP[0])
-        statsBP++;
+        statsBP+=(numBP[1] - numBP[0]);
     if(numBTB[1] > numBTB[0])
-        statsBTB++;
+        statsBTB+=(numBTB[1] - numBTB[0]);
     if(numICache[1] > numICache[0])
-        statsICache++;
+        statsICache+=(numICache[1] - numICache[0]);
     if(numREG[1] > numREG[0])
-        statsREG++;
+        statsREG+=(numREG[1] - numREG[0]);
     if(numEXE[1] > numEXE[0])
-        statsEXE++;
+        statsEXE+=(numEXE[1] - numEXE[0]);
     if(numLSU[1] > numLSU[0])
-        statsLSU++;
+        statsLSU+=(numLSU[1] - numLSU[0]);
     if(numDCache[1] > numDCache[0])
-        statsDCache++;
+        statsDCache+=(numDCache[1] - numDCache[0]);
     if(numMMU[1] > numMMU[0])
-        statsMMU++;
+        statsMMU+=(numMMU[1] - numMMU[0]);
     if(numITLB[1] > numITLB[0])
-        statsITLB++;
+        statsITLB+=(numITLB[1] - numITLB[0]);
     if(numDTLB[1] > numDTLB[0])
-        statsDTLB++;
-    
+        statsDTLB+=(numDTLB[1] - numDTLB[0]);
+
     numAll++;
     numIFU[0] = numIFU[1];
     numICache[0] = numICache[1];
@@ -816,6 +944,7 @@ InOrderCPU::tick()
     numMMU[0] = numMMU[1];
     numITLB[0] = numITLB[1];
     numDTLB[0] = numDTLB[1];
+    
 
 
     CurHot = 0;
