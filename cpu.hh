@@ -113,6 +113,7 @@ class InOrderCPU : public BaseCPU
     int KHot;
     int CurHot;
     int numAll = 0;
+    int squashThisCycle = 0;
     //IF
     double numIFU[2] = {0,0};
     double numICache[2] = {0,0};
@@ -972,6 +973,7 @@ class InOrderCPU : public BaseCPU
     Stats::Scalar statsITLB;
     Stats::Scalar statsDTLB;
 
+    Stats::Scalar statsSquash;
 };
 
 #endif // __CPU_O3_CPU_HH__

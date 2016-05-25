@@ -87,15 +87,14 @@ FirstStage::squash(InstSeqNum squash_seq_num, ThreadID tid)
         DPRINTF(InOrderStage, "[tid:%i]: Removing instruction, [sn:%i] "
                 "PC %s.\n", tid, skidBuffer[tid].front()->seqNum,
                 skidBuffer[tid].front()->pc);
+        cpu->squashThisCycle++;
         skidBuffer[tid].pop_front();
     }
 
     // Now that squash has propagated to the first stage,
     // Alert CPU to remove instructions from the CPU instruction list.
     // @todo: Move this to the CPU object.
-    DPRINTF(InOrderStage, "get here 1");
     cpu->removeInstsUntil(squash_seq_num, tid);
-    DPRINTF(InOrderStage, "get here 2");
 }
 
 void 

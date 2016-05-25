@@ -225,7 +225,7 @@ InOrderCPU::CPUEvent::unscheduleEvent()
 InOrderCPU::InOrderCPU(Params *params)
     : BaseCPU(params),
       StageHot(0),
-      KHot(4),
+      KHot(1),
       CurHot(0),
       cpu_id(params->cpu_id),
       coreType("default"),
@@ -760,6 +760,9 @@ InOrderCPU::regStats()
     statsDTLB
         .name(name() + ".numDTLB")
         .desc("All total used");
+    statsSquash
+        .name(name()+ ".numSquash")
+        .desc("number of instructions squashed");
     BaseCPU::regStats();
 }
 
@@ -788,7 +791,11 @@ InOrderCPU::tick()
 
         pipes_idle = pipes_idle && pipelineStage[stNum]->idle;
     }
-    
+    if(squashThisCycle > 0){
+        DPRINTF(InOrderUseDef,"num squash this cycle is %d\n",squashThisCycle);
+        statsSquash+=squashThisCycle;
+        squashThisCycle = 0;
+    }
     if(numAll == 0){
         powerNow[0] = 3;
         powerNow[1] = 2;
@@ -1821,7 +1828,7 @@ InOrderCPU::squashInstIt(const ListIt inst_it, ThreadID tid)
                 inst->threadNumber,
                 inst->seqNum,
                 inst->pcState());
-
+        squashThisCycle++;
         inst->setSquashed();
         archRegDepMap[tid].remove(inst);
 

@@ -398,8 +398,9 @@ PipelineStage::squashPrevStageInsts(InstSeqNum squash_seq_num, ThreadID tid)
                     tid,
                     prevStage->insts[i]->seqNum,
                     prevStage->insts[i]->pcState());
+            //cpu->statsSquash++;
+            cpu->squashThisCycle ++;
             prevStage->insts[i]->setSquashed();
-
             prevStage->insts[i] = cpu->dummyBufferInst;
         }
     }
@@ -431,6 +432,8 @@ PipelineStage::squash(InstSeqNum squash_seq_num, ThreadID tid)
         } else {
             DPRINTF(InOrderStage, "[tid:%i]: Removing instruction, [sn:%i] "
                     " PC %s.\n", tid, (*cur_it)->seqNum, (*cur_it)->pc);
+            //cpu->statsSquash++;
+            cpu->squashThisCycle++;
             (*cur_it)->setSquashed();
             cur_it = skidBuffer[tid].erase(cur_it);
         }
